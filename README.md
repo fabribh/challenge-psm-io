@@ -10,7 +10,7 @@ After that we can see on the console one docker image called `docker.io/library/
 
 Just execute the command below to run the application:
 
-`docker run --rm -p 8080:8080 -d docker.io/library/psm-io:0.0.1-SNAPSHOT`
+`docker run --rm -p 8080:8080 -d docker.io/library/psm-io:1.0.0-SNAPSHOT`
 
 The application is up and running, on the root of the project have a postman collection under the folder called 
 `collections`
