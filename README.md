@@ -6,7 +6,7 @@ and then execute the command:
 
 `./mvnw spring-boot:build-image`
 
-After that we can see on the console one docker image called `docker.io/library/psm-io:0.0.1-SNAPSHOT`
+After that we can see on the console one docker image called `docker.io/library/psm-io:1.0.0-SNAPSHOT`
 
 Just execute the command below to run the application:
 
