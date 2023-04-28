@@ -17,7 +17,7 @@ The application is up and running, on the root of the project have a postman col
 
 The Documentation of the project is [here](http://localhost:8080/swagger-ui/index.html#/)
 
-Also, the [H2 Console](http://localhost:8080/h2-console/)
+Also, the [H2 Console](http://localhost:8080/h2-console/) JDBC URL:`jdbc:h2:mem:psm` User Name:`sa` Password:`123456`
 
 The project was built using the follow stack-tech:
 * Java 17
