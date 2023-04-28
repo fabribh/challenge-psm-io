@@ -1,0 +1,10 @@
+server:
+  port: 8086
+
+spring:
+  datasource:
+    url:
+    username:
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
