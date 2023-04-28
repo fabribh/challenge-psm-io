@@ -93,7 +93,8 @@ class AccountControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.httpStatus").value(is(HttpStatus.NOT_FOUND.name())))
+                .andExpect(jsonPath("$.statusCode").value(is(HttpStatus.NOT_FOUND.value())))
+                .andExpect(jsonPath("$.status").value(is(HttpStatus.NOT_FOUND.name())))
                 .andExpect(jsonPath("$.message")
                         .value(is("Account not found to an account_id: ".concat(String.valueOf(accountId)))));
     }

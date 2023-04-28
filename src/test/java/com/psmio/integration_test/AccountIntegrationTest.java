@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -70,7 +71,8 @@ public class AccountIntegrationTest {
         mockMvc
                 .perform(get(URI.concat(PATH), 100L))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.httpStatus", is("NOT_FOUND")))
+                .andExpect(jsonPath("$.statusCode", is(HttpStatus.NOT_FOUND.value())))
+                .andExpect(jsonPath("$.status", is(HttpStatus.NOT_FOUND.name())))
                 .andExpect(jsonPath("$.message", is("Account not found to an account_id: 100")));
     }
 }

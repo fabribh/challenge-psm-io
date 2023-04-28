@@ -7,7 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Getter
@@ -37,5 +37,5 @@ public class Transaction {
     private BigDecimal amount;
 
     @CreationTimestamp
-    private LocalDateTime eventDate;
+    private OffsetDateTime eventDate;
 }

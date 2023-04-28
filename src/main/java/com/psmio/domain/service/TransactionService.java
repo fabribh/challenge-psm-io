@@ -1,5 +1,6 @@
 package com.psmio.domain.service;
 
+import com.psmio.domain.exceptions.IllegalTransactionException;
 import com.psmio.domain.model.OperationType;
 import com.psmio.domain.model.Transaction;
 import com.psmio.domain.repository.TransactionRepository;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 @Service
 public class TransactionService {
 
+    public static final String THE_AMOUNT_COULD_NOT_BE = "The amount could not be: ";
     private final TransactionRepository transactionRepository;
 
     private final AccountService accountService;
@@ -28,6 +30,9 @@ public class TransactionService {
     }
 
     private BigDecimal calculateAmount(OperationType type, BigDecimal amount) {
+        if (BigDecimal.ZERO.compareTo(amount) == 0)
+            throw new IllegalTransactionException(THE_AMOUNT_COULD_NOT_BE + amount);
+
         return new BigDecimal(String.valueOf(amount.multiply(BigDecimal.valueOf(type.getMultiplying()))));
     }
 }

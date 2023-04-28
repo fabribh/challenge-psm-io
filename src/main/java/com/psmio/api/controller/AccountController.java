@@ -34,6 +34,7 @@ public class AccountController {
     @Operation(summary = "Get an account by id", method = "GET")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Account found"),
+            @ApiResponse(responseCode = "404", description = "Account Id not found"),
     })
     @GetMapping("/{accountId}")
     public Account getAccounts(@Validated @PathVariable Long accountId) {

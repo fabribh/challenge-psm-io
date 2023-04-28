@@ -6,11 +6,13 @@ import com.psmio.api.model.TransactionDTO;
 import com.psmio.domain.model.Account;
 import com.psmio.domain.model.OperationType;
 import com.psmio.domain.repository.AccountRepository;
+import com.psmio.domain.service.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -101,5 +103,21 @@ public class TransactionIntegrationTest {
                 .andExpect(jsonPath("$.account_id", is(transaction.accountId().intValue())))
                 .andExpect(jsonPath("$.operation_type_id", is(transaction.operationTypeId())))
                 .andExpect(jsonPath("$.amount").value(amount));
+    }
+
+    @Test
+    void testCreateATransactionWithAmountValueZeroShouldThrowAnException() throws Exception{
+        var amount = BigDecimal.ZERO;
+        var transaction = new TransactionDTO(account.getId(), OperationType.PAYMENT.getId(), amount);
+
+        mockMvc
+                .perform(post(URI)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(transaction)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode", is(HttpStatus.BAD_REQUEST.value())))
+                .andExpect(jsonPath("$.status", is(HttpStatus.BAD_REQUEST.name())))
+                .andExpect(jsonPath("$.message")
+                        .value(is(TransactionService.THE_AMOUNT_COULD_NOT_BE.concat(amount.toString()))));
     }
 }

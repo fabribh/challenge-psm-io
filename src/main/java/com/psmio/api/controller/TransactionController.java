@@ -37,7 +37,8 @@ public class TransactionController {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionDTO.class))
             }),
-            @ApiResponse(responseCode = "400", description = "Operation Type invalid or Account Id not found"),
+            @ApiResponse(responseCode = "404", description = "Operation Type invalid or Account Id not found"),
+            @ApiResponse(responseCode = "400", description = "Transaction Operation invalid"),
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

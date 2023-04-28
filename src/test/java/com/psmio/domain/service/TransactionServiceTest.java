@@ -1,5 +1,6 @@
 package com.psmio.domain.service;
 
+import com.psmio.domain.exceptions.IllegalTransactionException;
 import com.psmio.domain.exceptions.UserAccountNotFoundException;
 import com.psmio.domain.model.Account;
 import com.psmio.domain.model.OperationType;
@@ -12,7 +13,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -122,6 +124,22 @@ class TransactionServiceTest {
         var exception = assertThrows(UserAccountNotFoundException.class,
                 () -> service.createTransaction(transaction));
         assertEquals("Account not found to an account_id: " + accountIdNonexistent,
+                exception.getMessage());
+    }
+
+    @Test
+    void testCreateTransactionWithAmountValueZero() {
+
+        var account = createAccount();
+        var amount = BigDecimal.ZERO;
+        var transaction = createTransaction(BigDecimal.ZERO, account, OperationType.PAYMENT);
+
+        when(accountService.getAccountsByIdOrElseThrow(transaction.getAccount().getId()))
+                .thenReturn(account);
+
+        var exception = assertThrows(IllegalTransactionException.class,
+                () -> service.createTransaction(transaction));
+        assertEquals(TransactionService.THE_AMOUNT_COULD_NOT_BE.concat(amount.toString()),
                 exception.getMessage());
     }
 
