@@ -32,7 +32,7 @@ public class TransactionController {
 
     @Operation(summary = "Create a transaction to an account", method = "POST")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Transaction created successfully",
+            @ApiResponse(responseCode = "201", description = "Transaction created successfully",
             content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TransactionDTO.class))
