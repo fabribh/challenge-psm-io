@@ -1,6 +1,9 @@
 package com.psmio.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.psmio.api.mapper.AccountMapper;
+import com.psmio.api.mapper.AccountModelMapper;
+import com.psmio.api.model.AccountDTO;
 import com.psmio.domain.exceptions.UserAccountNotFoundException;
 import com.psmio.domain.model.Account;
 import com.psmio.domain.service.AccountService;
@@ -17,7 +20,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.math.BigDecimal;
+
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@WebMvcTest(AccountController.class)
+@WebMvcTest({AccountController.class, AccountMapper.class, AccountModelMapper.class})
 class AccountControllerTest {
 
     public static final String URI = "/accounts";
@@ -44,6 +50,9 @@ class AccountControllerTest {
     @MockBean
     private AccountService accountService;
 
+    @MockBean
+    private AccountMapper accountMapper;
+
     @BeforeEach
     void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(web).build();
@@ -51,19 +60,21 @@ class AccountControllerTest {
 
     @Test
     void testCreateAccount() throws Exception {
+        var accountDTO = new AccountDTO("12345678900", new BigDecimal("5000"));
         var account = getAnAccountWithId(10L);
 
-        when(accountService.addAccount(account))
+        when(accountMapper.apply(accountDTO)).thenReturn(account);
+        when(accountService.addAccount(any(Account.class)))
                 .thenReturn(account);
 
         mockMvc
                 .perform(post(URI)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(account))
+                        .content(mapper.writeValueAsString(accountDTO))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(account.getId()))
-                .andExpect(jsonPath("$.document_number").value(account.getDocumentNumber()));
+                .andExpect(jsonPath("$.document_number").value(account.getDocumentNumber()))
+                .andExpect(jsonPath("$.available_credit_limit").value(account.getAvailableCreditLimit()));
     }
 
     @Test
@@ -79,7 +90,8 @@ class AccountControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(accountId));
+                .andExpect(jsonPath("$.document_number").value(account.getDocumentNumber()))
+                .andExpect(jsonPath("$.available_credit_limit").value(account.getAvailableCreditLimit()));
     }
 
     @Test
@@ -99,6 +111,10 @@ class AccountControllerTest {
                         .value(is("Account not found to an account_id: ".concat(String.valueOf(accountId)))));
     }
     private static Account getAnAccountWithId(Long accountId) {
-        return Account.builder().id(accountId).documentNumber( "12345678900").build();
+        return Account.builder()
+                .id(accountId)
+                .documentNumber( "12345678900")
+                .availableCreditLimit(new BigDecimal("5000"))
+                .build();
     }
 }

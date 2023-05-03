@@ -38,12 +38,13 @@ class TransactionServiceTest {
     @Test
     void testCreateTransactionWithBuyTheCashTypeAndNegativeAmount() {
 
-        var amount = new BigDecimal("123.45");
+        var amount = new BigDecimal("5000");
         var account = createAccount();
         var transaction = createTransaction(amount, account, OperationType.BUY_THE_CASH);
 
         when(accountService.getAccountsByIdOrElseThrow(transaction.getAccount().getId()))
                 .thenReturn(account);
+
         when(repository.save(any(Transaction.class)))
                 .thenReturn(transaction);
 
@@ -52,12 +53,13 @@ class TransactionServiceTest {
         assertEquals(transaction.getAccount(), transactionCreated.getAccount());
         assertEquals(transaction.getOperationType(), transactionCreated.getOperationType());
         assertEquals(amount.negate(), transactionCreated.getAmount());
+        assertEquals(account.getAvailableCreditLimit(), BigDecimal.ZERO);
     }
 
     @Test
-    void testCreateTransactionWithInstallmentPurchaseTypeAndNegativeAmount() {
+    void testCreateTransactionWithInstallmentPurchaseTypeAndNegativeAmountAlsoUpdateTheLimitOfAccount() {
 
-        var amount = new BigDecimal("123.45");
+        var amount = new BigDecimal("4999.99");
         var account = createAccount();
         var transaction = createTransaction(amount, account, OperationType.INSTALLMENT_PURCHASE);
 
@@ -71,10 +73,11 @@ class TransactionServiceTest {
         assertEquals(transaction.getAccount(), transactionCreated.getAccount());
         assertEquals(transaction.getOperationType(), transactionCreated.getOperationType());
         assertEquals(amount.negate(), transactionCreated.getAmount());
+        assertEquals(account.getAvailableCreditLimit(), BigDecimal.valueOf(0.01));
     }
 
     @Test
-    void testCreateTransactionWithWithdrawTypeAndNegativeAmount() {
+    void testCreateTransactionWithWithdrawTypeAndNegativeAmountAlsoUpdateTheLimitOfAccount() {
 
         var amount = new BigDecimal("123.45");
         var account = createAccount();
@@ -90,10 +93,11 @@ class TransactionServiceTest {
         assertEquals(transaction.getAccount(), transactionCreated.getAccount());
         assertEquals(transaction.getOperationType(), transactionCreated.getOperationType());
         assertEquals(amount.negate(), transactionCreated.getAmount());
+        assertEquals(account.getAvailableCreditLimit(), BigDecimal.valueOf(4876.55));
     }
 
     @Test
-    void testCreateTransactionWithPaymentTypeAndPositiveAmount() {
+    void testCreateTransactionWithPaymentTypeAndPositiveAmountAlsoUpdateLimitOfAccount() {
 
         var account = createAccount();
         var amount = new BigDecimal("123.45");
@@ -109,6 +113,7 @@ class TransactionServiceTest {
         assertEquals(transaction.getAccount(), transactionCreated.getAccount());
         assertEquals(transaction.getOperationType(), transactionCreated.getOperationType());
         assertEquals(amount, transactionCreated.getAmount());
+        assertEquals(account.getAvailableCreditLimit(), BigDecimal.valueOf(5123.45));
     }
 
     @Test
@@ -139,7 +144,52 @@ class TransactionServiceTest {
 
         var exception = assertThrows(IllegalTransactionException.class,
                 () -> service.createTransaction(transaction));
-        assertEquals(TransactionService.THE_AMOUNT_COULD_NOT_BE.concat(amount.toString()),
+        assertEquals(TransactionService.MUST_BE_GREATER_THAN_0.concat(amount.toString()),
+                exception.getMessage());
+    }
+
+    @Test
+    void testCreateTransactionBuyTheCashWithAmountGreaterThanLimitOfAccount() {
+
+        var account = createAccount();
+        var amount = new BigDecimal("5000.01");
+        var transaction = createTransaction(amount, account, OperationType.BUY_THE_CASH);
+
+        when(accountService.getAccountsByIdOrElseThrow(transaction.getAccount().getId()))
+                .thenReturn(account);
+        var exception = assertThrows(IllegalTransactionException.class,
+                () -> service.createTransaction(transaction));
+        assertEquals(TransactionService.LIMIT_IS_NOT_ENOUGH.concat(amount.toString()),
+                exception.getMessage());
+    }
+
+    @Test
+    void testCreateTransactionInstallmentPurchaseWithAmountGreaterThanLimitOfAccount() {
+
+        var account = createAccount();
+        var amount = new BigDecimal("5000.02");
+        var transaction = createTransaction(amount, account, OperationType.INSTALLMENT_PURCHASE);
+
+        when(accountService.getAccountsByIdOrElseThrow(transaction.getAccount().getId()))
+                .thenReturn(account);
+        var exception = assertThrows(IllegalTransactionException.class,
+                () -> service.createTransaction(transaction));
+        assertEquals(TransactionService.LIMIT_IS_NOT_ENOUGH.concat(amount.toString()),
+                exception.getMessage());
+    }
+
+    @Test
+    void testCreateTransactionWithdrawWithAmountGreaterThanLimitOfAccount() {
+
+        var account = createAccount();
+        var amount = new BigDecimal("5000.001");
+        var transaction = createTransaction(amount, account, OperationType.WITHDRAW);
+
+        when(accountService.getAccountsByIdOrElseThrow(transaction.getAccount().getId()))
+                .thenReturn(account);
+        var exception = assertThrows(IllegalTransactionException.class,
+                () -> service.createTransaction(transaction));
+        assertEquals(TransactionService.LIMIT_IS_NOT_ENOUGH.concat(amount.toString()),
                 exception.getMessage());
     }
 
@@ -156,6 +206,7 @@ class TransactionServiceTest {
         return Account.builder()
                 .id(1L)
                 .documentNumber("12345678900")
+                .availableCreditLimit(new BigDecimal("5000"))
                 .build();
     }
 }
